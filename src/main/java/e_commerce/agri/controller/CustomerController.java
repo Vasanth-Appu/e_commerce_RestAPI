@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Random;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -26,6 +27,7 @@ import e_commerce.agri.repository.CategoryRepo;
 import e_commerce.agri.repository.ProductsRepo;
 import e_commerce.agri.service.CustomerService;
 import e_commerce.agri.service.OrderService;
+import e_commerce.agri.service.OtpService;
 
 @RestController
 @RequestMapping("/customer")
@@ -34,6 +36,7 @@ public class CustomerController {
 	@Autowired ProductsRepo productsRepo;
 	@Autowired OrderService orderService;
 	@Autowired CategoryRepo categoryRepo;
+	@Autowired OtpService otpService;
 	
 	@PostMapping("/signup")
 	public ResponseEntity<?> customerSignup(@RequestBody Customer customer, BindingResult result) throws Exception {
@@ -47,8 +50,8 @@ public class CustomerController {
 	                  .map(ObjectError::getDefaultMessage)
 	                  .toList()
 	        );
-	    }
-
+	    } 
+        
 	    try {
 	        // Attempt to sign up the customer
 	        Customer createdCustomer = customerService.signup(customer);
@@ -64,23 +67,51 @@ public class CustomerController {
 
 }
 	
-	   @PostMapping("/login")
-	    public ResponseEntity<?> customerLogin(@RequestParam(name="email") String email, @RequestParam(name="password") String password) {
-	        try {
-	            boolean isAuthenticated = customerService.authenticate(email, password);
-	            if (isAuthenticated) {
-	            	List<Products> products = productsRepo.findByIsAvailableTrue();;
-		        	Map<String,Object> viewAllproduct = new HashMap<>();
-		        	viewAllproduct.put("Message", "LoginSuccessfull");
-		        	viewAllproduct.put("Products",products);
-	                return ResponseEntity.ok(viewAllproduct);
-	            } else {
-	                return ResponseEntity.status(401).body("Invalid email or password");
-	            }
-	        } catch (Exception e) {
-	            return ResponseEntity.status(500).body("An error occurred: " + e.getMessage());
+	@PostMapping("/login")
+	public ResponseEntity<?> customerLogin(@RequestParam(name="email") String email, @RequestParam (name="password")  String password) {
+	    try {
+	        // : Authenticate user with email & password
+	        boolean isAuthenticated = customerService.authenticate(email, password);
+	        if (!isAuthenticated) {
+	            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("Status", "error", "Message", "Invalid email or password"));
 	        }
+	        
+            String otp = "000000";// default otp
+	       // String otp = String.valueOf(new Random().nextInt(900000) + 100000)  ; 
+	        otpService.saveOtp(email, otp);
+
+	        // Send OTP via email 
+	        otpService.sendOtp(email, otp);
+	        //Send OTP via SMS
+	        otpService.sendSms(email, otp);
+
+	        return ResponseEntity.ok(Map.of("Status", "OTP Sent", "Message", "Check your email for OTP"));
+	    } catch (Exception e) {
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("Status", "error", "Message", e.getMessage()));
 	    }
+	}
+	
+	@PostMapping("/verify-otp")
+	public ResponseEntity<?> verifyOtp(@RequestParam (name="email") String email, @RequestParam (name="otp")  String otp) {
+	    try {
+	    	
+	        boolean isOtpValid = otpService.verifyOtp(email, otp);
+	        if (!isOtpValid) {
+	            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("Status", "error", "Message", "Invalid or expired OTP"));
+	        }
+
+	        List<Products> products = productsRepo.findByIsAvailableTrue();
+
+	       
+	        otpService.deleteOtp(email);
+
+	        return ResponseEntity.ok(Map.of("Status", "Login Successful", "Products", products));
+	    } catch (Exception e) {
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("Status", "error", "Message", e.getMessage()));
+	    }
+	}
+
+
 	   
 		 @PostMapping("/order")
 		  public ResponseEntity<?> orderItem(@RequestParam(name="productId")long id,@RequestParam(name="farmerEmail")String toEmail,@RequestParam(name="customerEmail")String sendEmail,@RequestParam(name="quantity")long quantity){
