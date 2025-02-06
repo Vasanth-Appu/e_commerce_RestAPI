@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -36,7 +37,7 @@ public class CartController {
 		public ResponseEntity<?>getCart(@RequestParam(name="emailId")String emailId){
 		List<Products>cartProduct=cartService.getCartProducts(emailId);
 		if(cartProduct.isEmpty()) {
-			return ResponseEntity.status(HttpStatus.NO_CONTENT).body("your Cart Is Empty");
+			return ResponseEntity.status(HttpStatus.OK).body("your Cart Is Empty");
 		}
 		Map<String,Object> response = new HashMap<>();
 		response.put("EmailId",emailId);
@@ -44,4 +45,19 @@ public class CartController {
 		
 		return ResponseEntity.status(HttpStatus.FOUND).body(response);
 	}
+	@DeleteMapping("/removecart")
+	public ResponseEntity<?> removeCart(
+	    @RequestParam(name = "id") long id,
+	    @RequestParam(name = "emailId") String emailId) {
+
+		boolean isRemoved = cartService.removeCart(id, emailId);
+
+	    if (isRemoved) {
+	        return ResponseEntity.ok("Item removed from the cart successfully.");
+	    } else {
+	        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+	                .body("Item not found or does not belong to the user.");
+	    }
 }
+}
+	

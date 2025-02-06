@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -59,5 +60,41 @@ public class CartService {
 	 public List<Products> getCartProducts(String emailId) {
 	        return cartRepo.findProductsByCustomerEmail(emailId);
 	    }
+
+
+
+	 public boolean removeCart(long productid, String emailId) {
+		    // Find customer by email
+		    Optional<Customer> customerOpt = customerRepo.findByEmailId(emailId);
+		    Optional<Products> productOpt = productsRepo.findById(productid);
+
+		    // Ensure both customer and product exist
+		    if (customerOpt.isPresent() && productOpt.isPresent()) {
+		        Customer customer = customerOpt.get();
+		        Products product = productOpt.get();
+
+		        // Find the cart item(s) associated with the product and customer
+		        List<Cart> cartItems = cartRepo.findAll().stream()
+		            .filter(c -> c.getProduct().getProductId() == product.getProductId() &&
+		                         c.getCustomer().getCustomer_id() == customer.getCustomer_id())
+		            .collect(Collectors.toList());
+		      
+		        // Remove the items from the cart
+		        if (!cartItems.isEmpty()) {
+		            cartRepo.deleteAll(cartItems);
+		            System.out.println("Cart item(s) removed: " + cartItems);
+		            return true;
+		        } else {
+		            System.out.println("No matching cart item found.");
+		        }
+		    } else {
+		        System.out.println("Customer or product not found.");
+		    }
+			return false;
+		}
+
+
+
+	 
 	}
 

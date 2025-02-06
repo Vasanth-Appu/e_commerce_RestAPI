@@ -8,6 +8,8 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import e_commerce.agri.modal.Customer;
@@ -19,7 +21,9 @@ import e_commerce.agri.repository.ProductsRepo;
 @Service
 public class CustomerService {
 	
-	@Autowired CustomerRepo customerRepo;
+	@Autowired
+	private CustomerRepo customerRepo;
+    private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
 			public Customer signup(Customer customer) throws Exception {
 					
@@ -32,6 +36,9 @@ public class CustomerService {
 		        if (customerRepo.findByEmailId(customer.getemailId()).isPresent()) {
 		            throw new Exception("Email ID already exists");
 		        }
+		        String encodePassword = passwordEncoder.encode(customer.getPassword());
+		        System.out.println(encodePassword);
+		        customer.setPassword(encodePassword);
 					return customerRepo.save(customer);
 			}
 			
@@ -41,13 +48,7 @@ public class CustomerService {
 
 			    if (customer.isPresent()) {
 			        Customer existingCustomer = customer.get();
-
-			        // Log farmer details for debugging
-			       // System.out.println("customer Email: " + existingCustomer.getCusEmail());
-			        System.out.println("customer Name: " + existingCustomer.getCusName());
-
-			        // Check if the password matches
-			        if (existingCustomer.getPassword() != null && existingCustomer.getPassword().equals(password)) {
+			        if (existingCustomer.getPassword() != null && passwordEncoder.matches(password, existingCustomer.getPassword())) {
 			        	
 			            return true ; // Email and password match
 			        }
