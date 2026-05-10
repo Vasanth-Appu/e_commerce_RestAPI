@@ -24,6 +24,7 @@ import e_commerce.agri.modal.Customer;
 import e_commerce.agri.modal.Farmer;
 import e_commerce.agri.modal.Products;
 import e_commerce.agri.repository.CategoryRepo;
+import e_commerce.agri.repository.CustomerRepo;
 import e_commerce.agri.repository.ProductsRepo;
 import e_commerce.agri.service.CustomerService;
 import e_commerce.agri.service.OrderService;
@@ -37,6 +38,8 @@ public class CustomerController {
 	@Autowired OrderService orderService;
 	@Autowired CategoryRepo categoryRepo;
 	@Autowired OtpService otpService;
+	@Autowired
+	private CustomerRepo customerRepo;
 	
 	@PostMapping("/signup")
 	public ResponseEntity<?> customerSignup(@RequestBody Customer customer, BindingResult result) throws Exception {
@@ -54,12 +57,13 @@ public class CustomerController {
         
 	    try {
 	        // Attempt to sign up the customer
-	        Customer createdCustomer = customerService.signup(customer);
+	    
+	    	ResponseEntity<Map<String, String>> createdCustomer = customerService.signup(customer);
 	        Map<String, Object> created = new HashMap<>();
 	        created.put("Status", "Successfully created");
 	        created.put("Data", createdCustomer);
-
-	        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+	        
+	        return ResponseEntity.ok(Map.of("Status", "OTP Sent", "Message", "Check your email for OTP"));
 	    }  catch (Exception e) {
 	        // Return error message
 	        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("Status", "error", "Message", e.getMessage()));
@@ -68,7 +72,9 @@ public class CustomerController {
 }
 	
 	@PostMapping("/login")
-	public ResponseEntity<?> customerLogin(@RequestParam(name="email") String email, @RequestParam (name="password")  String password) {
+	public ResponseEntity<?> customerLogin(@RequestBody Map<String ,String> body) {
+		String email = body.get("userEmail");
+		String password = body.get("password");
 	    try {
 	        // : Authenticate user with email & password
 	        boolean isAuthenticated = customerService.authenticate(email, password);
@@ -91,8 +97,40 @@ public class CustomerController {
 	    }
 	}
 	
+	
+	@PostMapping("/signup-verify")
+	public ResponseEntity<?> verifySignupOtp(@RequestBody Map<String ,String> req){
+		String email=req.get("email");
+		String otp = req.get("otp");
+	    try {
+	    	
+	        boolean isOtpValid = otpService.verifyOtp(email, otp);
+	        if (!isOtpValid) {
+	            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("Status", "error", "Message", "Invalid or expired OTP"));
+	        }    
+	        Customer customer = otpService.getTempCustomer(email);
+
+			if(customer == null){
+			    System.out.println("Customer is null");
+			}else{
+			    System.out.println("Customer details: " + customer);
+			}
+	        customerRepo.save(customer);
+	        otpService.deleteOtp(email);
+	        //otpService.deleteTempCustomer(email);
+	        //return ResponseEntity.ok(Map.of("Status", "siginup Successful"));
+	        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("Status", "Success", "Message","Signup Succcesfull"));
+
+	    } catch (Exception e) {
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("Status", "error", "Message", e.getMessage()));
+	    }
+	}
+	
+	
 	@PostMapping("/verify-otp")
-	public ResponseEntity<?> verifyOtp(@RequestParam (name="email") String email, @RequestParam (name="otp")  String otp) {
+	public ResponseEntity<?> verifyOtp(@RequestBody Map<String ,String> body) {
+		String email=body.get("email");
+		String otp = body.get("otp");
 	    try {
 	    	
 	        boolean isOtpValid = otpService.verifyOtp(email, otp);

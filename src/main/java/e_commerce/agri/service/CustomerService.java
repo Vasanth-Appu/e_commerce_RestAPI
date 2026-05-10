@@ -23,9 +23,12 @@ public class CustomerService {
 	
 	@Autowired
 	private CustomerRepo customerRepo;
+	@Autowired
+	private OtpService otpService;
+
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-			public Customer signup(Customer customer) throws Exception {
+			public ResponseEntity<Map<String, String>> signup(Customer customer) throws Exception {
 					
 				 // Check if mobile number already exists
 		        if (customerRepo.findByCustContact(customer.getCustContact()).isPresent()) {
@@ -35,11 +38,16 @@ public class CustomerService {
 		        // Check if email already exists
 		        if (customerRepo.findByEmailId(customer.getemailId()).isPresent()) {
 		            throw new Exception("Email ID already exists");
-		        }
-		        String encodePassword = passwordEncoder.encode(customer.getPassword());
-		        System.out.println(encodePassword);
-		        customer.setPassword(encodePassword);
-					return customerRepo.save(customer);
+		        }   
+		        String otp = "000000";// default otp
+			       // String otp = String.valueOf(new Random().nextInt(900000) + 100000)  ; 
+			        otpService.saveOtp(customer.getemailId(), otp);
+
+			        otpService.sendOtp(customer.getemailId(), otp);
+			        
+			        otpService.storeTempCustomer(customer.getemailId(), customer);
+			        return ResponseEntity.ok(Map.of("Status", "OTP Sent", "Message", "Check your email for OTP"));
+
 			}
 			
 			public boolean authenticate(String customerEmail, String password) {
