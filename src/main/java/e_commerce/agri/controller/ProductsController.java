@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import e_commerce.agri.dto.ProductDto;
 import e_commerce.agri.modal.Products;
+import e_commerce.agri.repository.ProductsRepo;
 import e_commerce.agri.service.ProductService;
 import jakarta.validation.Valid;
 
@@ -27,7 +28,8 @@ public class ProductsController {
 
     @Autowired 
     ProductService productService;
-
+    @Autowired
+    private ProductsRepo productsRepo;
     @PostMapping("/upload")
     public ResponseEntity<?> uploadProducts(@Valid @RequestBody ProductDto productDto, 
                                             @RequestParam(name="email") String farmerEmail, 
@@ -66,7 +68,7 @@ public class ProductsController {
             List<ProductDto> retrieved = productService.getProductsByFarmerEmail(farmerEmail);
             Map<String, Object> dataRetrieved = new HashMap<>();
             dataRetrieved.put("Email", farmerEmail);
-            dataRetrieved.put("Status", "Successfully Retrieved");
+            dataRetrieved.put("Status", "Success");
             dataRetrieved.put("Retrieved Products", retrieved);
 
             return ResponseEntity.status(HttpStatus.OK).body(dataRetrieved);
@@ -75,5 +77,22 @@ public class ProductsController {
                 "error", e.getMessage()
             ));
         }
+    }
+    @GetMapping("/all-products")
+    public ResponseEntity<?>getAllProducts(){
+    	try {
+            List<Products> products = productsRepo.findByIsAvailableTrue();
+            Map<String,Object> response = new HashMap<>();
+            response.put("Status", "Success");
+            response.put("products", products);
+            
+            
+    		return ResponseEntity.status(HttpStatus.OK).body(response);
+    	}catch (Exception e) {
+    		 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+    	                Map.of("error", e.getMessage())
+    	            );
+    	}
+    	
     }
 }

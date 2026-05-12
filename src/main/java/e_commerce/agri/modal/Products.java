@@ -58,7 +58,7 @@ public class Products {
 
 	@NotNull(message = "Category is mandatory")
     @Valid
-    @OneToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "category_id", referencedColumnName = "category_Id")
     private Category category;
 

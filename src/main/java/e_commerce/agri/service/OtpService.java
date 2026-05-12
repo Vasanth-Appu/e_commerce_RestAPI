@@ -50,7 +50,7 @@ public class OtpService {
         otpExpiry.remove(email);
     }
 
-    public void sendOtp(String email, String otp) {
+    public void sendOtp(String email, String otp)throws Exception{
 
         try {
 
@@ -96,7 +96,7 @@ public class OtpService {
 
                     "<hr style='border:none;border-top:1px solid #eee;margin-top:25px;'/>" +
 
-                    "<p style='font-size:13px;color:#999;text-align:center;'>" +
+                    "<p style='font-size:13px;color:#999;text-align:center;'>" +	
                     "© 2026 APSA. All rights reserved." +
                     "</p>" +
 
@@ -106,8 +106,13 @@ public class OtpService {
 
             javaMailSender.send(message);
 
+        } catch (org.springframework.mail.MailException e) {
+
+            throw new Exception("Unable to send OTP email", e);
+
         } catch (Exception e) {
-            e.printStackTrace();
+
+            throw new Exception("Unexpected error while sending OTP", e);
         }
     }
 

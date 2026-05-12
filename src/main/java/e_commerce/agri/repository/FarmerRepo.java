@@ -12,6 +12,7 @@ import e_commerce.agri.modal.Farmer;
 public interface FarmerRepo extends JpaRepository<Farmer,Long>{
 
 	    Optional<Farmer> findByFarmerEmail(String farmerEmail);
+
 	
 }
 

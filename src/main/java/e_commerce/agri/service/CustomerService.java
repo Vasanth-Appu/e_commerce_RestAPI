@@ -39,11 +39,16 @@ public class CustomerService {
 		        if (customerRepo.findByEmailId(customer.getemailId()).isPresent()) {
 		            throw new Exception("Email ID already exists");
 		        }   
-		        String otp = "000000";// default otp
-			       // String otp = String.valueOf(new Random().nextInt(900000) + 100000)  ; 
-			        otpService.saveOtp(customer.getemailId(), otp);
-
-			        otpService.sendOtp(customer.getemailId(), otp);
+		        try {
+		            String otp = "000000";// default otp
+				       // String otp = String.valueOf(new Random().nextInt(900000) + 100000)  ; 
+				        otpService.saveOtp(customer.getemailId(), otp);
+				        
+				        otpService.sendOtp(customer.getemailId(), otp);
+		        }catch (Exception e){
+		        	throw new Exception ("Error Occured to sending Mial" + e.getMessage());
+		        }
+		    
 			        
 			        otpService.storeTempCustomer(customer.getemailId(), customer);
 			        return ResponseEntity.ok(Map.of("Status", "OTP Sent", "Message", "Check your email for OTP"));

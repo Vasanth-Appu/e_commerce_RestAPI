@@ -16,16 +16,16 @@ public class FarmerService {
 	
 	@Autowired FarmerRepo farmerRepo;
 
-	public Farmer signup(Farmer farmer) {
+	public Farmer signup(Farmer farmer) throws Exception {
+//		  if (farmerRepo.findByCustContact(farmer.getCustContact()).isPresent()) {
+//	            throw new Exception("Mobile number already exists");
+//	        }
+
+	        // Check if email already exists
+	        if (farmerRepo.findByFarmerEmail(farmer.getFarmerEmail()).isPresent()) {
+	            throw new Exception("Email ID already exists");
+	        }  
 		
-//		Farmer newFarmer = new Farmer();
-//		
-//		newfarmer.se
-//		
-//     farmer
-//	 farmer.setFarmerContact("1234567890");
-//	farmer.setFarmerEmail("farmer@gmail.com");
-//	farmer.setPassword("Farmer@123");
 		return farmerRepo.save(farmer);
 	}
 
