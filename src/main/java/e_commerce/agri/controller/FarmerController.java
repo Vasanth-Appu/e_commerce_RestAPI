@@ -20,7 +20,7 @@ import e_commerce.agri.service.FarmerService;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/farmer")
+@RequestMapping("/")
 public class FarmerController {
     @Autowired
     FarmerService farmerService;
@@ -40,7 +40,7 @@ public class FarmerController {
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<?> saveFarmer(@Valid @RequestBody Farmer farmer, BindingResult result) throws Exception {
+    public ResponseEntity<?> saveFarmer(@Valid @RequestBody Farmer farmer, BindingResult result) {
     	System.out.println("Farmer details: " + farmer);
 
         if (result.hasErrors()) {

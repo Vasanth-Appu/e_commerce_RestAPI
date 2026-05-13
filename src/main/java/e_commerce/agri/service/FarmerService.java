@@ -5,8 +5,10 @@ package e_commerce.agri.service;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import e_commerce.agri.exception.AppException;
 import e_commerce.agri.modal.Farmer;
 import e_commerce.agri.repository.FarmerRepo;
 
@@ -16,15 +18,18 @@ public class FarmerService {
 	
 	@Autowired FarmerRepo farmerRepo;
 
-	public Farmer signup(Farmer farmer) throws Exception {
+	public Farmer signup(Farmer farmer)  {
 //		  if (farmerRepo.findByCustContact(farmer.getCustContact()).isPresent()) {
 //	            throw new Exception("Mobile number already exists");
 //	        }
 
 	        // Check if email already exists
 	        if (farmerRepo.findByFarmerEmail(farmer.getFarmerEmail()).isPresent()) {
-	            throw new Exception("Email ID already exists");
-	        }  
+	        	  throw new AppException(
+	                      "Email ID already exists",
+	                      "409",
+	                      HttpStatus.CONFLICT
+	              );	        }  
 		
 		return farmerRepo.save(farmer);
 	}
