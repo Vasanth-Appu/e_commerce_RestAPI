@@ -19,17 +19,9 @@ public class FarmerService {
 	@Autowired FarmerRepo farmerRepo;
 
 	public Farmer signup(Farmer farmer)  {
-//		  if (farmerRepo.findByCustContact(farmer.getCustContact()).isPresent()) {
-//	            throw new Exception("Mobile number already exists");
-//	        }
-
-	        // Check if email already exists
 	        if (farmerRepo.findByFarmerEmail(farmer.getFarmerEmail()).isPresent()) {
-	        	  throw new AppException(
-	                      "Email ID already exists",
-	                      "409",
-	                      HttpStatus.CONFLICT
-	              );	        }  
+	        	  throw new AppException( "Email ID already exists","EMAIL_EXISTS", HttpStatus.CONFLICT);	      
+ }  
 		
 		return farmerRepo.save(farmer);
 	}

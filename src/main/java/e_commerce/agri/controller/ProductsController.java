@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import e_commerce.agri.dto.ProductDto;
+import e_commerce.agri.exception.AppException;
 import e_commerce.agri.modal.Products;
 import e_commerce.agri.repository.ProductsRepo;
 import e_commerce.agri.service.ProductService;
@@ -82,6 +83,9 @@ public class ProductsController {
     public ResponseEntity<?>getAllProducts(){
     	try {
             List<Products> products = productsRepo.findByIsAvailableTrue();
+            if(products.isEmpty()) {
+            	throw new AppException("Products Not Available", "NOT_FOUND", HttpStatus.NO_CONTENT);
+            }
             Map<String,Object> response = new HashMap<>();
             response.put("Status", "Success");
             response.put("products", products);

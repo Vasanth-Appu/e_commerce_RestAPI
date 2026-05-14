@@ -4,7 +4,9 @@ import org.springframework.http.HttpStatus;
 
 public class AppException extends RuntimeException {
 
-    private final String errorCode;
+	private static final long serialVersionUID = 511193895901950924L;
+	
+	private final String errorCode;
     private final HttpStatus status;
 
     public AppException(String message, String errorCode, HttpStatus status) {

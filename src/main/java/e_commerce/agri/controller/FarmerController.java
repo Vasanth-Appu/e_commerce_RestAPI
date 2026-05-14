@@ -20,7 +20,7 @@ import e_commerce.agri.service.FarmerService;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/")
+@RequestMapping("/farmer")
 public class FarmerController {
     @Autowired
     FarmerService farmerService;
