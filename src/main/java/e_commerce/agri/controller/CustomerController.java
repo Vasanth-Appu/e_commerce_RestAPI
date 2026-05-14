@@ -58,7 +58,7 @@ public class CustomerController {
 	    try {
 	        // Attempt to sign up the customer
 	    
-	    	ResponseEntity<Map<String, String>> createdCustomer = customerService.signup(customer);
+	    	ResponseEntity<Map<String, String>> createdCustomer =   customerService.signup(customer);
 	        Map<String, Object> created = new HashMap<>();
 	        created.put("Status", "Successfully created");
 	        created.put("Data", createdCustomer);
