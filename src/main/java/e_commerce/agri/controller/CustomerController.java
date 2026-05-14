@@ -47,7 +47,7 @@ public class CustomerController {
 
 	    // Check for validation errors
 	    if (result.hasErrors()) {
-	        result.getAllErrors().forEach(error -> System.out.println(error.getDefaultMessage()));
+	        result.getAllErrors().forEach(error -> System.out.println (error.getDefaultMessage()));
 	        return ResponseEntity.badRequest().body(
 	            result.getAllErrors().stream()
 	                  .map(ObjectError::getDefaultMessage)
