@@ -22,20 +22,21 @@ import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/farmer")
-@Slf4j 
+@Slf4j
 public class FarmerController {
     @Autowired
     FarmerService farmerService;
 
     @PostMapping("/login")
-    public ResponseEntity<?> farmerLogin(@RequestParam(name="email") String email, @RequestParam(name="password") String password) {
+    public ResponseEntity<?> farmerLogin(@RequestParam(name = "email") String email,
+            @RequestParam(name = "password") String password) {
         try {
             boolean isAuthenticated = farmerService.authenticate(email, password);
             if (isAuthenticated) {
                 return ResponseEntity.ok("Login successful");
             } else {
-              return ResponseEntity.status(401).body("Invalid email or password");
-                //throw new RuntimeException("Invalid email or password");
+                return ResponseEntity.status(401).body("Invalid email or password");
+                // throw new RuntimeException("Invalid email or password");
             }
         } catch (Exception e) {
             return ResponseEntity.status(500).body("An error occurred: " + e.getMessage());
@@ -43,26 +44,21 @@ public class FarmerController {
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<?> saveFarmer(@Valid @RequestBody Farmer farmer, BindingResult result) throws Exception {
-    	log.info("Farmer details: " + farmer);
+    public ResponseEntity<?> saveFarmer(@Valid @RequestBody Farmer farmer, BindingResult result) {
+        System.out.println("Farmer details: " + farmer);
 
         if (result.hasErrors()) {
             result.getAllErrors().forEach(error -> System.out.println(error.getDefaultMessage()));
             return ResponseEntity.badRequest().body(
-                result.getAllErrors().stream()
-                      .map(ObjectError::getDefaultMessage)
-                      .toList()
-            );
+                    result.getAllErrors().stream()
+                            .map(ObjectError::getDefaultMessage)
+                            .toList());
         }
-   Farmer farmerr= farmerService.signup(farmer);
-        Map <String,Object> created = new HashMap();
+        Farmer farmerr = farmerService.signup(farmer);
+        Map<String, Object> created = new HashMap();
         created.put("Status", "successfully created");
-        created.put("Data",farmerr);
+        created.put("Data", farmerr);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
-    
-    
-
 
 }
-

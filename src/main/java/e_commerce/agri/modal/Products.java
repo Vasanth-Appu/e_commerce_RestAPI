@@ -56,8 +56,8 @@ public class Products {
 
 	@NotNull(message = "Category is mandatory")
 	@Valid
-	@OneToOne(cascade = CascadeType.ALL)
-	@JoinColumn(name = "category_id", referencedColumnName = "s_no")
+	@ManyToOne(cascade = CascadeType.ALL)
+	@JoinColumn(name = "category_id", referencedColumnName = "category_Id")
 	private Category category;
 
 	@Lob
@@ -77,9 +77,9 @@ public class Products {
 	@Column(name = "is_available", nullable = false)
 	private boolean isAvailable = true; // Default value
 
-	 @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-	 @JsonIgnore
-	 private List<Cart> cartItems;
+	@OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	@JsonIgnore
+	private List<Cart> cartItems;
 	@CreationTimestamp
 	@Column(name = "created_time", nullable = false, updatable = false)
 	private Date createdTime;

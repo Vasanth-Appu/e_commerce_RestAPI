@@ -28,6 +28,7 @@ import e_commerce.agri.modal.Customer;
 import e_commerce.agri.modal.Farmer;
 import e_commerce.agri.modal.Products;
 import e_commerce.agri.repository.CategoryRepo;
+import e_commerce.agri.repository.CustomerRepo;
 import e_commerce.agri.repository.ProductsRepo;
 import e_commerce.agri.service.CustomerService;
 import e_commerce.agri.service.OrderService;
@@ -52,17 +53,11 @@ public class CustomerController {
 	@Autowired
 	OtpService otpService;
 
-	private JwtService jwtService;
-	private CustomerMapper cusMapper;
-
-	public CustomerController(JwtService jwtService, CustomerMapper cusMapper) {
-		this.jwtService = jwtService;
-		this.cusMapper = cusMapper;
-	}
-
 	@PostMapping("/signup")
-	public ResponseEntity<?> customerSignup(@Valid @RequestBody Customer customer, BindingResult result)
-			throws Exception {
+	public ResponseEntity<?> customerSignup(@RequestBody Customer customer, BindingResult result) throws Exception {
+		System.out.println("Customer details: " + customer);
+
+		// Check for validation errors
 		if (result.hasErrors()) {
 			result.getAllErrors().forEach(error -> System.out.println(error.getDefaultMessage()));
 			return ResponseEntity.badRequest().body(
@@ -72,14 +67,15 @@ public class CustomerController {
 		}
 
 		try {
+			// Attempt to sign up the customer
 			Customer createdCustomer = customerService.signup(customer);
-			CustomerDTO resMapper = cusMapper.toDTO(createdCustomer);
 			Map<String, Object> created = new HashMap<>();
 			created.put("Status", "Successfully created");
-			created.put("Data", resMapper);
+			created.put("Data", createdCustomer);
 
 			return ResponseEntity.status(HttpStatus.CREATED).body(created);
 		} catch (Exception e) {
+			// Return error message
 			return ResponseEntity.status(HttpStatus.CONFLICT)
 					.body(Map.of("Status", "error", "Message", e.getMessage()));
 		}
@@ -87,9 +83,10 @@ public class CustomerController {
 	}
 
 	@PostMapping("/login")
-	public ResponseEntity<?> customerLogin(@RequestParam String email,
-			@RequestParam String password) {
+	public ResponseEntity<?> customerLogin(@RequestParam(name = "email") String email,
+			@RequestParam(name = "password") String password) {
 		try {
+			// : Authenticate user with email & password
 			boolean isAuthenticated = customerService.authenticate(email, password);
 			if (!isAuthenticated) {
 				return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
@@ -113,23 +110,21 @@ public class CustomerController {
 	}
 
 	@PostMapping("/verify-otp")
-	public ResponseEntity<?> verifyOtp(@RequestParam String email,
-			@RequestParam String otp, HttpSession session) {
+	public ResponseEntity<?> verifyOtp(@RequestParam(name = "email") String email,
+			@RequestParam(name = "otp") String otp) {
 		try {
 
 			boolean isOtpValid = otpService.verifyOtp(email, otp);
 			if (!isOtpValid) {
 				return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-						.body(Map.of("Status", "FAILED", "Message", "Invalid or expired OTP"));
+						.body(Map.of("Status", "error", "Message", "Invalid or expired OTP"));
 			}
-			session.setAttribute("userEmail", email);
-			List<Products> products = productsRepo.findAll().stream()
-					.filter(x -> x.isAvailable()).collect(Collectors.toList());
+
+			List<Products> products = productsRepo.findByIsAvailableTrue();
+
 			otpService.deleteOtp(email);
-			String token = jwtService.generateToken(email);
-			session.setAttribute("curToken", token);
-			log.info(token);
-			return ResponseEntity.ok(Map.of("Status", "Login Successful", "Token", token));
+
+			return ResponseEntity.ok(Map.of("Status", "Login Successful", "Products", products));
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
 					.body(Map.of("Status", "error", "Message", e.getMessage()));

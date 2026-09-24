@@ -18,8 +18,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import e_commerce.agri.dto.ProductDto;
+import e_commerce.agri.exception.AppException;
 import e_commerce.agri.exceptionHandler.NotFoundException;
 import e_commerce.agri.modal.Products;
+import e_commerce.agri.repository.ProductsRepo;
 import e_commerce.agri.service.ProductService;
 import jakarta.validation.Valid;
 
@@ -27,26 +29,20 @@ import jakarta.validation.Valid;
 @RequestMapping("/product")
 public class ProductsController {
 
-    private final ProductsRepo productsRepo;
-    final ProductService productService;
-
-    ProductsController(ProductService productService, ProductsRepo productsRepo) {
-        this.productService = productService;
-        this.productsRepo = productsRepo;
-    }
+    @Autowired
+    ProductService productService;
 
     @PostMapping("/upload")
-    public ResponseEntity<?> uploadProducts(@Valid @RequestBody ProductDto productDto, 
-                                            @RequestParam(name="email") String farmerEmail, 
-                                            BindingResult result) {
+    public ResponseEntity<?> uploadProducts(@Valid @RequestBody ProductDto productDto,
+            @RequestParam(name = "email") String farmerEmail,
+            BindingResult result) {
         // Check for validation errors
         if (result.hasErrors()) {
             result.getAllErrors().forEach(error -> System.out.println(error.getDefaultMessage()));
             return ResponseEntity.badRequest().body(
-                result.getAllErrors().stream()
-                      .map(ObjectError::getDefaultMessage)
-                      .toList()
-            );
+                    result.getAllErrors().stream()
+                            .map(ObjectError::getDefaultMessage)
+                            .toList());
         }
 
         try {
@@ -56,38 +52,49 @@ public class ProductsController {
             Map<String, Object> uploadedProduct = new HashMap<>();
             uploadedProduct.put("Status", "Successfully Uploaded");
             uploadedProduct.put("Data", newProduct);
-         
+
             return ResponseEntity.status(HttpStatus.CREATED).body(uploadedProduct);
 
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                Map.of("error", e.getMessage())
-            );
+                    Map.of("error", e.getMessage()));
         }
     }
 
     @GetMapping("/getProduct")
-    public ResponseEntity<?> getProduct(@RequestParam(name = "farmerEmail") String farmerEmail)throws NotFoundException {
+    public ResponseEntity<?> getProduct(@RequestParam(name = "farmerEmail") String farmerEmail)
+            throws NotFoundException {
         try {
             // Retrieve the products by farmer email
             List<ProductDto> retrieved = productService.getProductsByFarmerEmail(farmerEmail);
             Map<String, Object> dataRetrieved = new HashMap<>();
             dataRetrieved.put("Email", farmerEmail);
-            dataRetrieved.put("Status", "Successfully Retrieved");
+            dataRetrieved.put("Status", "Success");
             dataRetrieved.put("Retrieved Products", retrieved);
 
             return ResponseEntity.status(HttpStatus.OK).body(dataRetrieved);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
-                "error", e.getMessage()
-            ));
+                    "error", e.getMessage()));
         }
     }
+
     @GetMapping("/all-products")
-    public List<Products> getMethodName() {
-        return productsRepo.findAll();
+    public ResponseEntity<?> getAllProducts() {
+        try {
+            List<Products> products = productsRepo.findByIsAvailableTrue();
+            if (products.isEmpty()) {
+                throw new AppException("Products Not Available", "NOT_FOUND", HttpStatus.NO_CONTENT);
+            }
+            Map<String, Object> response = new HashMap<>();
+            response.put("Status", "Success");
+            response.put("products", products);
+
+            return ResponseEntity.status(HttpStatus.OK).body(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                    Map.of("error", e.getMessage()));
+        }
+
     }
-    
-
-
 }

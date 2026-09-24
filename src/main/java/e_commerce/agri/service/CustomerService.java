@@ -25,20 +25,24 @@ public class CustomerService {
 	@Autowired
 	private CustomerRepo customerRepo;
 	private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+	@Autowired
+	private OtpService otpService;
 
-	public Customer signup(Customer customer) {
+	private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
+	public Customer signup(Customer customer) throws Exception {
 
 		// Check if mobile number already exists
 		if (customerRepo.findByCustContact(customer.getCustContact()).isPresent()) {
-			throw new AlreadyExistsException("Mobile number already exists");
+			throw new Exception("Mobile number already exists");
 		}
 
 		// Check if email already exists
-
 		if (customerRepo.findByEmailId(customer.getemailId()).isPresent()) {
-			throw new AlreadyExistsException("Email ID already exists");
+			throw new Exception("Email ID already exists");
 		}
 		String encodePassword = passwordEncoder.encode(customer.getPassword());
+		System.out.println(encodePassword);
 		customer.setPassword(encodePassword);
 		return customerRepo.save(customer);
 	}
