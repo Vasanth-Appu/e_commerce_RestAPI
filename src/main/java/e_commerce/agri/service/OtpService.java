@@ -19,13 +19,14 @@ import e_commerce.agri.repository.CustomerRepo;
 
 @Service
 public class OtpService {
-	@Autowired 
-	private JavaMailSender javaMailSender;
-	@Autowired CustomerRepo customerRepo;
-	  
-	@Value("${twilio.phone.number}")
-	    private String twilioPhoneNumber;
-	  
+    @Autowired
+    private JavaMailSender javaMailSender;
+    @Autowired
+    CustomerRepo customerRepo;
+
+    @Value("${twilio.phone.number}")
+    private String twilioPhoneNumber;
+
     private final Map<String, String> otpStore = new ConcurrentHashMap<>();
     private final Map<String, LocalDateTime> otpExpiry = new ConcurrentHashMap<>();
     private final int OTP_EXPIRATION_MINUTES = 5;
@@ -48,16 +49,15 @@ public class OtpService {
     }
 
     public void sendOtp(String email, String otp) {
- 
-        System.out.println("Sending OTP " + otp + " to " + email); //uncommand when use email auuth
-//        SimpleMailMessage mailOtp = new SimpleMailMessage();
-//        mailOtp.setTo(email);
-//        mailOtp.setSubject("Otp verification By Apsa");
-//        mailOtp.setText("Verify your OTP: " + otp );
-//       // mailOtp.setText("Verify your OTP: <b>" + otp + "</b>", "text/html");
-//        javaMailSender.send(mailOtp);
+
+        // uncommand when use email auuth
+        // SimpleMailMessage mailOtp = new SimpleMailMessage();
+        // mailOtp.setTo(email);
+        // mailOtp.setSubject("Otp verification By Apsa");
+        // mailOtp.setText("Verify your OTP: " + otp );
+        // // mailOtp.setText("Verify your OTP: <b>" + otp + "</b>", "text/html");
+        // javaMailSender.send(mailOtp);
     }
-  
 
     public void sendSms(String email, String otp) {
         Optional<Customer> getCusNum = customerRepo.findByEmailId(email);
@@ -67,12 +67,11 @@ public class OtpService {
 
             try {
                 Message message = Message.creator(
-                        new PhoneNumber("+91 "+number),  // Receiver's phone number
+                        new PhoneNumber("+91 " + number), // Receiver's phone number
                         new PhoneNumber(twilioPhoneNumber), // Twilio phone number
                         "Your APSA verification OTP is: " + otp)
-                    .create();
-                
-                System.out.println("SMS Sent Successfully. SID: " + message.getSid());
+                        .create();
+
             } catch (Exception e) {
                 System.err.println("Error sending SMS: " + e.getMessage());
             }
@@ -80,7 +79,5 @@ public class OtpService {
             System.err.println("Customer not found with email: " + email);
         }
     }
-
-    
 
 }

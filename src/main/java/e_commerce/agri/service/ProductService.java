@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import e_commerce.agri.dto.ProductDto;
+import e_commerce.agri.exceptionHandler.NotFoundException;
 import e_commerce.agri.modal.Category;
 import e_commerce.agri.modal.Farmer;
 import e_commerce.agri.modal.Products;
@@ -43,7 +44,7 @@ public class ProductService {
 
             // Fetch the farmer by email
             Farmer farmer = farmerRepo.findByFarmerEmail(farmerEmail)
-                    .orElseThrow(() -> new RuntimeException("Farmer not found for email: " + farmerEmail));
+                    .orElseThrow(() -> new NotFoundException("Farmer not found for email: " + farmerEmail));
 
             // Set farmer in the product
             product.setFarmer(farmer);
@@ -51,7 +52,7 @@ public class ProductService {
             // Handle category if provided
             if (productDto.getCategoryName() != null) {
                 Category category = categoryRepo.findByCategoryName(productDto.getCategoryName()) // Updated to use findByCategoryName
-                        .orElseThrow(() -> new RuntimeException("Category not found"));
+                        .orElseThrow(() -> new NotFoundException("Category not found"));
                 product.setCategory(category);
             }
 
@@ -81,9 +82,9 @@ public class ProductService {
         }
     }
 
-    public List<ProductDto> getProductsByFarmerEmail(String farmerEmail) {
+    public List<ProductDto> getProductsByFarmerEmail(String farmerEmail) throws NotFoundException {
         Farmer farmer = farmerRepo.findByFarmerEmail(farmerEmail)
-                .orElseThrow(() -> new RuntimeException("Farmer with email " + farmerEmail + " not found"));
+                .orElseThrow(() -> new NotFoundException ("Farmer with email " + farmerEmail + " not found"));
 
         return farmer.getProducts().stream().map(product -> {
             ProductDto dto = new ProductDto();

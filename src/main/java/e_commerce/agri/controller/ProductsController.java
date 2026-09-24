@@ -1,5 +1,6 @@
 package e_commerce.agri.controller;
 
+import e_commerce.agri.repository.ProductsRepo;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import e_commerce.agri.dto.ProductDto;
+import e_commerce.agri.exceptionHandler.NotFoundException;
 import e_commerce.agri.modal.Products;
 import e_commerce.agri.service.ProductService;
 import jakarta.validation.Valid;
@@ -25,8 +27,13 @@ import jakarta.validation.Valid;
 @RequestMapping("/product")
 public class ProductsController {
 
-    @Autowired 
-    ProductService productService;
+    private final ProductsRepo productsRepo;
+    final ProductService productService;
+
+    ProductsController(ProductService productService, ProductsRepo productsRepo) {
+        this.productService = productService;
+        this.productsRepo = productsRepo;
+    }
 
     @PostMapping("/upload")
     public ResponseEntity<?> uploadProducts(@Valid @RequestBody ProductDto productDto, 
@@ -49,7 +56,7 @@ public class ProductsController {
             Map<String, Object> uploadedProduct = new HashMap<>();
             uploadedProduct.put("Status", "Successfully Uploaded");
             uploadedProduct.put("Data", newProduct);
-            System.out.println(uploadedProduct);
+         
             return ResponseEntity.status(HttpStatus.CREATED).body(uploadedProduct);
 
         } catch (Exception e) {
@@ -60,7 +67,7 @@ public class ProductsController {
     }
 
     @GetMapping("/getProduct")
-    public ResponseEntity<?> getProduct(@RequestParam(name = "farmerEmail") String farmerEmail) {
+    public ResponseEntity<?> getProduct(@RequestParam(name = "farmerEmail") String farmerEmail)throws NotFoundException {
         try {
             // Retrieve the products by farmer email
             List<ProductDto> retrieved = productService.getProductsByFarmerEmail(farmerEmail);
@@ -76,4 +83,11 @@ public class ProductsController {
             ));
         }
     }
+    @GetMapping("/all-products")
+    public List<Products> getMethodName() {
+        return productsRepo.findAll();
+    }
+    
+
+
 }

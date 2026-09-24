@@ -18,9 +18,11 @@ import org.springframework.web.bind.annotation.RestController;
 import e_commerce.agri.modal.Farmer;
 import e_commerce.agri.service.FarmerService;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/farmer")
+@Slf4j 
 public class FarmerController {
     @Autowired
     FarmerService farmerService;
@@ -32,7 +34,8 @@ public class FarmerController {
             if (isAuthenticated) {
                 return ResponseEntity.ok("Login successful");
             } else {
-                return ResponseEntity.status(401).body("Invalid email or password");
+              return ResponseEntity.status(401).body("Invalid email or password");
+                //throw new RuntimeException("Invalid email or password");
             }
         } catch (Exception e) {
             return ResponseEntity.status(500).body("An error occurred: " + e.getMessage());
@@ -41,7 +44,7 @@ public class FarmerController {
 
     @PostMapping("/signup")
     public ResponseEntity<?> saveFarmer(@Valid @RequestBody Farmer farmer, BindingResult result) throws Exception {
-    	System.out.println("Farmer details: " + farmer);
+    	log.info("Farmer details: " + farmer);
 
         if (result.hasErrors()) {
             result.getAllErrors().forEach(error -> System.out.println(error.getDefaultMessage()));
