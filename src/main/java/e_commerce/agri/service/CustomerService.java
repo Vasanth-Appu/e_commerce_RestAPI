@@ -28,8 +28,6 @@ public class CustomerService {
 	@Autowired
 	private OtpService otpService;
 
-	private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-
 	public Customer signup(Customer customer) throws Exception {
 
 		// Check if mobile number already exists

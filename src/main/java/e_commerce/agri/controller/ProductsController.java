@@ -31,6 +31,8 @@ public class ProductsController {
 
     @Autowired
     ProductService productService;
+    @Autowired
+    ProductsRepo productsRepo;
 
     @PostMapping("/upload")
     public ResponseEntity<?> uploadProducts(@Valid @RequestBody ProductDto productDto,
